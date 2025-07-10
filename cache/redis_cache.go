@@ -12,7 +12,7 @@ import (
 var RDB *redis.Client
 var ctx = context.Background()
 
-func InitRedis(cfg *config.RedisConfig) {
+func InitRedis(cfg config.RedisConfig) {
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     cfg.Addr,
 		Password: cfg.Password,
@@ -37,4 +37,17 @@ func SetStudentToCache(student *model.Student) error {
 
 func DeleteStudentFromCache(id string) error {
 	return RDB.Del(ctx, id).Err()
+}
+
+func SetToken(token string) error {
+	return RDB.Set(ctx, "token:"+token, "1", 10*time.Minute).Err()
+}
+
+func IsTokenValid(token string) bool {
+	val, err := RDB.Get(ctx, "token:"+token).Result()
+	return err == nil && val == "1"
+}
+
+func DeleteToken(token string) error {
+	return RDB.Del(ctx, "token:"+token).Err()
 }
